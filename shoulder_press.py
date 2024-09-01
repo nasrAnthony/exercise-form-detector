@@ -14,6 +14,7 @@ class shoulder_press:
             15: "L wrist",
             16: "R wrist"
         }
+        
         self.expected_max_height = max_height
         #self.shoulder_base_height_left = shoulder_height_L
         #self.shoulder_base_height_right = shoulder_height_R

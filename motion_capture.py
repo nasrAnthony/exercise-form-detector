@@ -1,12 +1,14 @@
 import cv2
 import time
+import os
+import subprocess
 from datetime import datetime
 from cvzone.PoseModule import PoseDetector
 from shoulder_press import shoulder_press
+from frames_to_vid import build_video_from_frames 
 
-
-
-
+unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
+batch_file_path = ".\\run_unity_engine.bat"
 
 class Mocap():
     def __init__(self):
@@ -26,7 +28,7 @@ class Mocap():
         #self.expected_shoulder_height_left = None #11
         #self.expected_shoulder_height_right = None #12
 
-    def run_mocap(self, exercise_name):
+    def run_mocap(self, exercise_name): #shoulder press
         #get the pertinent landmarks
         exercise_lms = list(self.lm_exercise_map.get(exercise_name, None).values())
         landmark_coords = {id: [] for id in exercise_lms}
@@ -38,6 +40,7 @@ class Mocap():
         #Initialize the PoseDetector
         detector = PoseDetector()
         posList = []
+        anim_list = []
 
         #Get the start time
         start_time = time.time()
@@ -52,11 +55,13 @@ class Mocap():
             #Perform pose estimation
             img = detector.findPose(img)
             lmList, bboxInfo = detector.findPosition(img)
-            
+                        
             #If pose information is found, store it
             if bboxInfo:
+                anim_string = ''
                 lmString = f"{frame_num}\n"
                 for lm in lmList:
+                    anim_string += f'{lm[1]}, {img.shape[0]-lm[2]},{lm[3]},'
                     img_height = img.shape[0]
                     if lm[0] in exercise_lms:
                         ycoord = img_height - lm[2]
@@ -69,6 +74,7 @@ class Mocap():
                             #update the new highest point for elbows only
                             self.max_height = ycoord
                         landmark_coords.get(lm[0]).append((lm[1], img_height - lm[2], lm[3])) #x, y, z
+                anim_list.append(anim_string)
                 posList.append(lmString)
 
             #Show the live video feed with pose estimation
@@ -88,16 +94,32 @@ class Mocap():
             f.write(f"RUN COMPLETE ON {time_stamp}\n")
             f.writelines(["%s\n" % item for item in posList])
 
+        with open("AnimationFileUnityData.txt", 'w') as w:
+            w.writelines(["%s\n" % item for item in anim_list])
+
+
         #Release the video capture object and close OpenCV windows
         cap.release()
         cv2.destroyAllWindows()
 
         return landmark_coords
+    
+    def run_unity_animator(self):
+        try:
+            subprocess.run([batch_file_path], check= True)
+        except Exception as e:
+            print(f"Error executing the Unity Motion Capture animation project: {e}")
 
+        try: 
+            time.sleep(10.0)
+            build_video_from_frames(fps= 30)
+        except Exception as e:
+            print(f"Error building video from frames in folder: {e}")
 
 if __name__ == '__main__':
+    time.sleep(3)
     motion_capture = Mocap()
-    motion_cap_data = motion_capture.run_mocap("shoulder press")
+    motion_cap_data = motion_capture.run_mocap("shoulder press") #user input
     sp = shoulder_press(motion_cap_data, motion_capture.max_height)
                         #motion_capture.expected_shoulder_height_left, 
                         #motion_capture.expected_shoulder_height_right)
@@ -105,4 +127,6 @@ if __name__ == '__main__':
     sp.get_position_data(verbose= False)
     sp.imprint_data()
     sp.analyze_data()
+    print("Running the animator now!")
+    motion_capture.run_unity_animator()
     
