@@ -2,13 +2,15 @@ import cv2
 import time
 import os
 import subprocess
+import mediapipe as mp
 from datetime import datetime
 from cvzone.PoseModule import PoseDetector
 from shoulder_press import shoulder_press
 from frames_to_vid import build_video_from_frames 
 
 unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
-batch_file_path = ".\\run_unity_engine.bat"
+#batch_file_path = ".\\run_unity_engine.bat"
+batch_file_path = ".\\run_unity_engine_no_engine"
 
 class Mocap():
     def __init__(self):
@@ -65,10 +67,6 @@ class Mocap():
                     img_height = img.shape[0]
                     if lm[0] in exercise_lms:
                         ycoord = img_height - lm[2]
-                        #if not self.expected_shoulder_height_left and lm[0] == 11:
-                        #    self.expected_shoulder_height_left = ycoord
-                        #if not self.expected_shoulder_height_right and lm[0] == 12:
-                        #    self.expected_shoulder_height_right = ycoord
                         lmString += f'landmark #{lm[0]}: ({lm[1]}, {ycoord}, {lm[3]})\n'
                         if lm[0] in [13, 14] and (ycoord > self.max_height): 
                             #update the new highest point for elbows only
