@@ -8,7 +8,10 @@ import numpy as np
 from datetime import datetime
 from cvzone.PoseModule import PoseDetector
 from bad_form import Bad_form
+from frames_to_vid import build_video_from_frames 
 
+unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
+batch_file_path = ".\\run_unity_engine_no_engine"
 bad_form_pics_path = ".\\bad-form-bin"
 
 class Shoulder_press_mocap():
@@ -37,6 +40,18 @@ class Shoulder_press_mocap():
 
         self.bad_form_list = []
         self.bad_form = False
+
+    def run_unity_animator(self):
+        try:
+            subprocess.run([batch_file_path], check= True)
+        except Exception as e:
+            print(f"Error executing the Unity Motion Capture animation project: {e}")
+
+        try: 
+            time.sleep(10.0)
+            build_video_from_frames(fps= 30)
+        except Exception as e:
+            print(f"Error building video from frames in folder: {e}")
 
     def save_bad_form_snapshot(self, img, reason, resonsibles):
         self.bad_form_captured = True
@@ -194,3 +209,5 @@ if __name__ == '__main__':
     time.sleep(3)
     sp = Shoulder_press_mocap()
     sp.run_mocap("shoulder press")
+    print("Running the animator now!")
+    sp.run_unity_animator()
