@@ -9,12 +9,13 @@ from cvzone.PoseModule import PoseDetector
 from bad_form import Bad_form
 from frames_to_vid import build_video_from_frames 
 
+#consts
 unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
 batch_file_path = ".\\run_unity_engine_no_engine.bat"
-bad_form_pics_path = ".\\bad-form-bin\\Shoulder-press"
-exercise_name = "Shoulder press"
+bad_form_pics_path = ".\\bad-form-bin\\Lateral-raise"
+exercise_name = "Lateral raise"
 
-class Shoulder_press_mocap():
+class Lateral_raise_mocap():
     def __init__(self):
 
         #current analysis coordinates
@@ -22,19 +23,18 @@ class Shoulder_press_mocap():
         self.right_shoulder_coords = None #12
         self.left_elbow_coords = None #13 
         self.right_elbow_coords = None #14
-        self.left_wrist_coords = None #15
-        self.right_wrist_coords = None #16
+        self.left_hip_coords = None #15
+        self.right_hip_coords = None #16
         self.offset_Y = None
         self.bad_form_captured = False
         self.lm_exercise_map = { 
-        # 11 : self.left_shoulder_coords lowkey this better... 
-            exercise_name: {
+            "Lateral raise": {
                 "L shoulder": 11, 
                 "R shoulder": 12, 
                 "L elbow" : 13, 
                 "R elbow": 14, 
-                "L wrist": 15,
-                "R wrist": 16
+                "R hip": 23,
+                "L hip": 24
             }
         }
         self.bad_form_list = []
@@ -59,11 +59,11 @@ class Shoulder_press_mocap():
         time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = os.path.join(bad_form_pics_path, f"bad_form_{time_stamp}.png")
         if 'R' in resonsibles:
-            og_y_coord_R = (self.right_elbow_coords[1] - self.offset_Y)*(-1)
-            cv2.circle(img, (self.right_elbow_coords[0], og_y_coord_R), radius=28, color=(0, 0, 255), thickness=2)
+            og_y_coord_R = (self.right_shoulder_coords[1] - self.offset_Y)*(-1)
+            cv2.circle(img, (self.right_shoulder_coords[0], og_y_coord_R), radius=28, color=(0, 0, 255), thickness=2)
         if 'L' in resonsibles:
-            og_y_coord_L = (self.left_elbow_coords[1] - self.offset_Y)*(-1)
-            cv2.circle(img, (self.left_elbow_coords[0], og_y_coord_L), radius=28, color=(0, 0, 255), thickness=2)
+            og_y_coord_L = (self.left_shoulder_coords[1] - self.offset_Y)*(-1)
+            cv2.circle(img, (self.left_shoulder_coords[0], og_y_coord_L), radius=28, color=(0, 0, 255), thickness=2)
         cv2.imwrite(filename, img)
         #create bad form object
         bf = Bad_form(reason= reason, exercise_name= exercise_name, image_file_path= filename)
@@ -76,16 +76,16 @@ class Shoulder_press_mocap():
         self.right_shoulder_coords and
         self.left_elbow_coords and
         self.right_elbow_coords and
-        self.left_wrist_coords and
-        self.right_wrist_coords):
+        self.left_hip_coords and
+        self.right_hip_coords):
             #right
-            a = np.array(self.right_shoulder_coords) 
-            b = np.array(self.right_elbow_coords)
-            c = np.array(self.right_wrist_coords)
+            a = np.array(self.right_hip_coords)
+            b = np.array(self.right_shoulder_coords)
+            c = np.array(self.right_elbow_coords)
             #left
-            d = np.array(self.left_shoulder_coords) 
-            e = np.array(self.left_elbow_coords)
-            f = np.array(self.left_wrist_coords)
+            d = np.array(self.left_hip_coords)
+            e = np.array(self.left_shoulder_coords)
+            f = np.array(self.left_elbow_coords)
             
             radians_R= np.arctan2(c[1]-b[1], c[0]-b[0]) - np.arctan2(a[1]-b[1], a[0]-b[0])
             radians_L = np.arctan2(f[1]-e[1], f[0]-e[0]) - np.arctan2(d[1]-e[1], d[0]-e[0])
@@ -97,20 +97,14 @@ class Shoulder_press_mocap():
             if angle_L > 180.0:
                 angle_L = 360 - angle_L
 
-            if (angle_R >= 160 or angle_R < 40) or (angle_L >= 160 or angle_L < 40):
+            if angle_R >= 140 or angle_L >= 140:
                 reason = "" 
                 responsibles = []
-                if angle_R >= 160:
-                    reason += "Your right arm went too high and extended your forearms!\n"
+                if angle_R > 140:
+                    reason += "Your right arm extended too high! Try to stop at a straight level.\n"
                     responsibles.append('R')
-                if angle_R < 40:
-                    reason += "Your right elbow went too low!\n"
-                    responsibles.append('R')
-                if angle_L >= 160:
-                    reason += "Your left arm went too high and extended your forearms!\n"
-                    responsibles.append('L')
-                if angle_L < 40:
-                    reason += "Your left elbow went too low!\n"
+                if angle_L > 140:
+                    reason += "Your left arm extended too high! Try to stop at a straight level.\n"
                     responsibles.append('L')
                 if not self.bad_form_captured:
                     self.save_bad_form_snapshot(img, reason, responsibles)
@@ -119,7 +113,7 @@ class Shoulder_press_mocap():
         else:
             return(f"Not enough data yet :D")
         
-    def run_mocap(self): 
+    def run_mocap(self):
         #get the pertinent landmarks
         exercise_lms = list(self.lm_exercise_map.get(exercise_name, None).values())
         landmark_coords = {id: [] for id in exercise_lms}
@@ -165,10 +159,10 @@ class Shoulder_press_mocap():
                                 self.left_elbow_coords = [lm[1], ycoord, lm[3]] #x y z
                             case 14:
                                 self.right_elbow_coords = [lm[1], ycoord, lm[3]] #x y z
-                            case 15:
-                                self.left_wrist_coords = [lm[1], ycoord, lm[3]] #x y z
-                            case 16:
-                                self.right_wrist_coords = [lm[1], ycoord, lm[3]] #x y z
+                            case 23:
+                                self.right_hip_coords = [lm[1], ycoord, lm[3]] #x y z
+                            case 24:
+                                self.left_hip_coords = [lm[1], ycoord, lm[3]] #x y z
                         self.angle_analysis(raw_image)
                         lmString += f'landmark #{lm[0]}: ({lm[1]}, {ycoord}, {lm[3]})\n'
                         landmark_coords.get(lm[0]).append((lm[1], img_height - lm[2], lm[3])) #x, y, z
@@ -206,7 +200,7 @@ class Shoulder_press_mocap():
 
 if __name__ == '__main__':
     time.sleep(3)
-    sp = Shoulder_press_mocap()
-    sp.run_mocap()
+    lr = Lateral_raise_mocap()
+    lr.run_mocap()
     print("Running the animator now!")
-    sp.run_unity_animator()
+    lr.run_unity_animator()
