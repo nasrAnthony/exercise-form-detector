@@ -8,6 +8,7 @@ from datetime import datetime
 from cvzone.PoseModule import PoseDetector
 from bad_form import Bad_form
 from frames_to_vid import build_video_from_frames 
+import argparse
 
 #consts
 unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
@@ -113,7 +114,18 @@ class Lateral_raise_mocap():
         else:
             return(f"Not enough data yet :D")
         
+    def fetch_arguments(self) -> int:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("time", help="define the time that camera will be on")
+        args = parser.parse_args()
+        if not args.time: 
+            time  = 10
+        else:
+            time = str(args.time)
+        return time
+    
     def run_mocap(self):
+        run_time = self.fetch_arguments()
         #get the pertinent landmarks
         exercise_lms = list(self.lm_exercise_map.get(exercise_name, None).values())
         landmark_coords = {id: [] for id in exercise_lms}
@@ -172,8 +184,7 @@ class Lateral_raise_mocap():
             #Show the live video feed with pose estimation
             cv2.imshow("Image", img)
             
-            #Break the loop if 10 seconds have passed
-            if time.time() - start_time > 12:
+            if time.time() - start_time > run_time:
                 break
             
             #Close the video feed if the user presses the 'q' key
@@ -195,8 +206,6 @@ class Lateral_raise_mocap():
         cv2.destroyAllWindows()
 
         return landmark_coords
-
-
 
 if __name__ == '__main__':
     time.sleep(3)

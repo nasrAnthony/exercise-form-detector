@@ -14,6 +14,8 @@ batch_file_path = ".\\run_unity_engine_no_engine.bat"
 bad_form_pics_path = ".\\bad-form-bin\\Shoulder-press"
 exercise_name = "Shoulder press"
 
+import argparse
+
 class Shoulder_press_mocap():
     def __init__(self):
 
@@ -119,7 +121,19 @@ class Shoulder_press_mocap():
         else:
             return(f"Not enough data yet :D")
         
+
+    def fetch_arguments(self) -> int:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("time", help="define the time that camera will be on")
+        args = parser.parse_args()
+        if not args.time: 
+            time  = 10
+        else:
+            time = str(args.time)
+        return time
+    
     def run_mocap(self): 
+        run_time = self.fetch_arguments()
         #get the pertinent landmarks
         exercise_lms = list(self.lm_exercise_map.get(exercise_name, None).values())
         landmark_coords = {id: [] for id in exercise_lms}
@@ -178,8 +192,7 @@ class Shoulder_press_mocap():
             #Show the live video feed with pose estimation
             cv2.imshow("Image", img)
             
-            #Break the loop if 10 seconds have passed
-            if time.time() - start_time > 12:
+            if time.time() - start_time > run_time:
                 break
             
             #Close the video feed if the user presses the 'q' key
