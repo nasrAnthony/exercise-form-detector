@@ -40,6 +40,7 @@ class Lateral_raise_mocap():
         }
         self.bad_form_list = []
         self.bad_form = False
+        self.animate_flag = False
 
     def run_unity_animator(self):
         try:
@@ -114,18 +115,24 @@ class Lateral_raise_mocap():
         else:
             return(f"Not enough data yet :D")
         
-    def fetch_arguments(self) -> int:
+    def fetch_arguments(self) -> tuple:
         parser = argparse.ArgumentParser()
         parser.add_argument("--time", help="define the time that camera will be on")
+        parser.add_argument("--a", action="store_true", help= "Include to run the unity animator exe")
         args = parser.parse_args()
         if not args.time: 
             time  = 10
         else:
             time = int(args.time)
-        return time
+        if not args.a:
+            a = False
+        else:
+            a = True
+        return (time , a)
     
     def run_mocap(self):
-        run_time = self.fetch_arguments()
+        ARGS = self.fetch_arguments()
+        run_time, self.animate_flag = ARGS[0], ARGS[1]
         #get the pertinent landmarks
         exercise_lms = list(self.lm_exercise_map.get(exercise_name, None).values())
         landmark_coords = {id: [] for id in exercise_lms}
@@ -212,5 +219,6 @@ if __name__ == '__main__':
     time.sleep(3)
     lr = Lateral_raise_mocap()
     lr.run_mocap()
-    #print("Running the animator now!")
-    ##r.run_unity_animator()
+    if lr.animate_flag:
+        print("Running the animator now!")
+        lr.run_unity_animator()
