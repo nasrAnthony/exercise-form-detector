@@ -116,12 +116,12 @@ class Lateral_raise_mocap():
         
     def fetch_arguments(self) -> int:
         parser = argparse.ArgumentParser()
-        parser.add_argument("time", help="define the time that camera will be on")
+        parser.add_argument("--time", help="define the time that camera will be on")
         args = parser.parse_args()
         if not args.time: 
             time  = 10
         else:
-            time = str(args.time)
+            time = int(args.time)
         return time
     
     def run_mocap(self):
@@ -156,28 +156,29 @@ class Lateral_raise_mocap():
             if bboxInfo:
                 anim_string = ''
                 lmString = f"{frame_num}\n"
-                for lm in lmList:
-                    anim_string += f'{lm[1]}, {img.shape[0]-lm[2]},{lm[3]},'
+                for i in range(0,len(lmList)):
+                    lm = lmList[i]
+                    anim_string += f'{lm[0]}, {img.shape[0]-lm[1]},{lm[2]},'
                     img_height = img.shape[0]
                     self.offset_Y = img_height
-                    if lm[0] in exercise_lms:
-                        ycoord = img_height - lm[2]
-                        match lm[0]:
+                    if i in exercise_lms:
+                        ycoord = img_height - lm[1]
+                        match i:
                             case 11:
-                                self.left_shoulder_coords = [lm[1], ycoord, lm[3]] #x y z
+                                self.left_shoulder_coords = [lm[0], ycoord, lm[2]] #x y z
                             case 12:
-                                self.right_shoulder_coords = [lm[1], ycoord, lm[3]] #x y z
+                                self.right_shoulder_coords = [lm[0], ycoord, lm[2]] #x y z
                             case 13:
-                                self.left_elbow_coords = [lm[1], ycoord, lm[3]] #x y z
+                                self.left_elbow_coords = [lm[0], ycoord, lm[2]] #x y z
                             case 14:
-                                self.right_elbow_coords = [lm[1], ycoord, lm[3]] #x y z
+                                self.right_elbow_coords = [lm[0], ycoord, lm[2]] #x y z
                             case 23:
-                                self.right_hip_coords = [lm[1], ycoord, lm[3]] #x y z
+                                self.right_hip_coords = [lm[0], ycoord, lm[2]] #x y z
                             case 24:
-                                self.left_hip_coords = [lm[1], ycoord, lm[3]] #x y z
+                                self.left_hip_coords = [lm[0], ycoord, lm[2]] #x y z
                         self.angle_analysis(raw_image)
-                        lmString += f'landmark #{lm[0]}: ({lm[1]}, {ycoord}, {lm[3]})\n'
-                        landmark_coords.get(lm[0]).append((lm[1], img_height - lm[2], lm[3])) #x, y, z
+                        lmString += f'landmark #{i}: ({lm[0]}, {ycoord}, {lm[2]})\n'
+                        landmark_coords.get(i).append((lm[0], img_height - lm[1], lm[2])) #x, y, z
                 anim_list.append(anim_string)
                 posList.append(lmString)
 
@@ -211,5 +212,5 @@ if __name__ == '__main__':
     time.sleep(3)
     lr = Lateral_raise_mocap()
     lr.run_mocap()
-    print("Running the animator now!")
-    lr.run_unity_animator()
+    #print("Running the animator now!")
+    ##r.run_unity_animator()
