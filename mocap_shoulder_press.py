@@ -42,6 +42,7 @@ class Shoulder_press_mocap():
         self.bad_form_list = []
         self.bad_form = False
         self.animate_flag = False
+        self.delay = 3
 
     def run_unity_animator(self):
         try:
@@ -127,6 +128,7 @@ class Shoulder_press_mocap():
         parser = argparse.ArgumentParser()
         parser.add_argument("--time", help="define the time that camera will be on")
         parser.add_argument("--a", action="store_true", help= "Include to run the unity animator exe")
+        parser.add_argument("--delay", help="define the time before camera starts")
         args = parser.parse_args()
         if not args.time: 
             time  = 10
@@ -136,11 +138,19 @@ class Shoulder_press_mocap():
             a = False
         else:
             a = True
-        return (time , a)
+        if not args.delay:
+            delay = 3 #seconds
+        else:
+            delay = int(args.delay)
+        return (time , a, delay)
     
     def run_mocap(self):
         ARGS = self.fetch_arguments()
-        run_time, self.animate_flag = ARGS[0], ARGS[1]
+        run_time, self.animate_flag, self.delay = ARGS[0], ARGS[1], ARGS[2]
+        
+        #give delay
+        time.sleep(self.delay)
+
         #get the pertinent landmarks
         exercise_lms = list(self.lm_exercise_map.get(exercise_name, None).values())
         landmark_coords = {id: [] for id in exercise_lms}
@@ -165,8 +175,7 @@ class Shoulder_press_mocap():
             frame_num += 1
             #Perform pose estimation
             img = detector.findPose(img)
-            lmList, bboxInfo = detector.findPosition(img)
-            image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)            
+            lmList, bboxInfo = detector.findPosition(img) 
             #If pose information is found, store it
             if bboxInfo:
                 anim_string = ''
@@ -226,7 +235,6 @@ class Shoulder_press_mocap():
 
 
 if __name__ == '__main__':
-    time.sleep(3)
     sp = Shoulder_press_mocap()
     sp.run_mocap()
     if sp.animate_flag:

@@ -157,8 +157,7 @@ class Lateral_raise_mocap():
             frame_num += 1
             #Perform pose estimation
             img = detector.findPose(img)
-            lmList, bboxInfo = detector.findPosition(img)
-            image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)            
+            lmList, bboxInfo = detector.findPosition(img)        
             #If pose information is found, store it
             if bboxInfo:
                 anim_string = ''
