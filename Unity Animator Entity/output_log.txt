@@ -1,0 +1,2 @@
+Mono path[0] = 'C:/Users/User/Desktop/4th year 2nd sem 2024/CEG4913/CODE/Python stuff/Form detector/Unity Animator Entity/MotionCapture_Data/Managed'
+Mono config path = 'C:/Users/User/Desktop/4th year 2nd sem 2024/CEG4913/CODE/Python stuff/Form detector/Unity Animator Entity/MonoBleedingEdge/etc'
