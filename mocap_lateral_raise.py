@@ -8,7 +8,7 @@ from datetime import datetime
 from cvzone.PoseModule import PoseDetector
 from bad_form import Bad_form
 from frames_to_vid import build_video_from_frames 
-import argparse
+from mocap_general import Mocap_General
 
 #consts
 unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
@@ -16,7 +16,7 @@ batch_file_path = ".\\run_unity_engine_no_engine.bat"
 bad_form_pics_path = ".\\bad-form-bin\\Lateral-raise"
 exercise_name = "Lateral raise"
 
-class Lateral_raise_mocap():
+class Lateral_raise_mocap(Mocap_General):
     def __init__(self):
 
         #current analysis coordinates
@@ -49,7 +49,7 @@ class Lateral_raise_mocap():
         except Exception as e:
             print(f"Error executing the Unity Motion Capture animation project: {e}")
 
-        try: 
+        try:
             time.sleep(10.0) #replace this with more flexible way of detecting unity completion
             build_video_from_frames(fps= 30)
         except Exception as e:
@@ -115,26 +115,6 @@ class Lateral_raise_mocap():
                 self.bad_form_captured = False
         else:
             return(f"Not enough data yet :D")
-        
-    def fetch_arguments(self) -> tuple:
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--time", help="define the time that camera will be on")
-        parser.add_argument("--a", action="store_true", help= "Include to run the unity animator exe")
-        parser.add_argument("--delay", help="define the time before camera starts")
-        args = parser.parse_args()
-        if not args.time: 
-            time  = 10
-        else:
-            time = int(args.time)
-        if not args.a:
-            a = False
-        else:
-            a = True
-        if not args.delay:
-            delay = 3 #seconds
-        else:
-            delay = int(args.delay)
-        return (time , a, delay)
     
     
     def run_mocap(self):
