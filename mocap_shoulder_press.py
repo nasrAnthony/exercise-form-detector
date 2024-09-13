@@ -8,15 +8,14 @@ from datetime import datetime
 from cvzone.PoseModule import PoseDetector
 from bad_form import Bad_form
 from frames_to_vid import build_video_from_frames 
+from mocap_general import Mocap_General
 
 unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
 batch_file_path = ".\\run_unity_engine_no_engine.bat"
 bad_form_pics_path = ".\\bad-form-bin\\Shoulder-press"
 exercise_name = "Shoulder press"
 
-import argparse
-
-class Shoulder_press_mocap():
+class Shoulder_press_mocap(Mocap_General):
     def __init__(self):
 
         #current analysis coordinates
@@ -122,27 +121,6 @@ class Shoulder_press_mocap():
                 self.bad_form_captured = False
         else:
             return(f"Not enough data yet :D")
-        
-
-    def fetch_arguments(self) -> tuple:
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--time", help="define the time that camera will be on")
-        parser.add_argument("--a", action="store_true", help= "Include to run the unity animator exe")
-        parser.add_argument("--delay", help="define the time before camera starts")
-        args = parser.parse_args()
-        if not args.time: 
-            time  = 10
-        else:
-            time = int(args.time)
-        if not args.a:
-            a = False
-        else:
-            a = True
-        if not args.delay:
-            delay = 3 #seconds
-        else:
-            delay = int(args.delay)
-        return (time , a, delay)
     
     def run_mocap(self):
         ARGS = self.fetch_arguments()
@@ -231,8 +209,6 @@ class Shoulder_press_mocap():
         cv2.destroyAllWindows()
 
         return landmark_coords
-
-
 
 if __name__ == '__main__':
     sp = Shoulder_press_mocap()
