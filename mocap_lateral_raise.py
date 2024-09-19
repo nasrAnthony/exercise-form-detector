@@ -13,7 +13,6 @@ from mocap_general import Mocap_General
 #consts
 unity_exe_path = ".\\Unity Animator Entity\\MotionCapture.exe" #need normpath here
 batch_file_path = ".\\run_unity_engine_no_engine.bat"
-bad_form_pics_path = ".\\bad-form-bin\\Lateral-raise"
 exercise_name = "Lateral raise"
 
 class Lateral_raise_mocap(Mocap_General):
@@ -42,6 +41,9 @@ class Lateral_raise_mocap(Mocap_General):
         self.bad_form = False
         self.animate_flag = False
         self.delay = 3
+        self.bad_form_pics_path = ".\\bad-form-bin\\Lateral-raise"
+        self.set_number = None
+        self.env_flag = False
 
     def run_unity_animator(self):
         try:
@@ -57,10 +59,13 @@ class Lateral_raise_mocap(Mocap_General):
 
     def save_bad_form_snapshot(self, img, reason, resonsibles):
         self.bad_form_captured = True
-        if not os.path.exists(bad_form_pics_path):
-            os.makedirs(bad_form_pics_path)
+        if self.set_number and not self.env_flag: #check if we are part of a split
+            self.bad_form_pics_path = self.bad_form_pics_path + f"_setnumber{self.set_number}"
+            self.env_flag = True
+        if not os.path.exists(self.bad_form_pics_path):
+            os.makedirs(self.bad_form_pics_path)
         time_stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = os.path.join(bad_form_pics_path, f"bad_form_{time_stamp}.png")
+        filename = os.path.join(self.bad_form_pics_path, f"bad_form_{time_stamp}.png")
         if 'R' in resonsibles:
             og_y_coord_R = (self.right_shoulder_coords[1] - self.offset_Y)*(-1)
             cv2.circle(img, (self.right_shoulder_coords[0], og_y_coord_R), radius=28, color=(0, 0, 255), thickness=2)
@@ -117,10 +122,13 @@ class Lateral_raise_mocap(Mocap_General):
             return(f"Not enough data yet :D")
     
     
-    def run_mocap(self):
-        ARGS = self.fetch_arguments()
-        run_time, self.animate_flag, self.delay = ARGS[0], ARGS[1], ARGS[2]
-
+    def run_mocap(self, run_from_split):
+        if not run_from_split: #get options from command line
+            ARGS = self.fetch_arguments()
+            run_time, self.animate_flag, self.delay, self.set_number = ARGS[0], ARGS[1], ARGS[2], ARGS[3]
+        elif run_from_split:  #get options from function call
+            run_time, self.animate_flag =  run_from_split[0], run_from_split[1]
+            self.delay, self.set_number = run_from_split[2], run_from_split[3]
         #give delay
         time.sleep(self.delay)
 

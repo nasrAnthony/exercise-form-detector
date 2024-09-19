@@ -7,8 +7,9 @@ class Mocap_General():
         parser.add_argument("--time", help="define the time that camera will be on")
         parser.add_argument("--a", action="store_true", help= "Include to run the unity animator exe")
         parser.add_argument("--delay", help="define the time before camera starts")
+        parser.add_argument("--setnum", help= "define the set number within a split", default= None)
         args = parser.parse_args()
-        if not args.time: 
+        if not args.time:
             time  = 10
         else:
             time = int(args.time)
@@ -20,4 +21,8 @@ class Mocap_General():
             delay = 3 #seconds
         else:
             delay = int(args.delay)
-        return (time , a, delay)
+        if not args.setnum:
+            setnum = None
+        else:
+            setnum = int(args.setnum)
+        return (time , a, delay, setnum)
