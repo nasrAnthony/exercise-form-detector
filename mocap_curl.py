@@ -121,7 +121,7 @@ class Curl_mocap(Mocap_General):
         else:
             return(f"Not enough data yet :D")
     
-    def run_mocap(self, run_from_split):
+    def run_mocap(self, run_from_split = None):
         if not run_from_split: #get options from command line
             ARGS = self.fetch_arguments()
             run_time, self.animate_flag, self.delay, self.set_number = ARGS[0], ARGS[1], ARGS[2], ARGS[3]
